@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>จดหมายครบรอบ</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Sriracha&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Sriracha', cursive;
+    }
+
+    .mail-container {
+      width: min(90vw, 600px);
+      height: min(70vh, 450px);
+      position: relative;
+      cursor: pointer;
+      transition: transform 0.8s ease;
+    }
+
+    .mail-container:hover {
+      transform: scale(1.03);
+    }
+
+    .envelope {
+      background-color: #dc2626;
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      top: 0;
+      left: 0;
+      border-radius: 0.5rem;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+      z-index: 1;
+      overflow: hidden;
+    }
+
+    .flap {
+      background-color: #b91c1c;
+      width: 100%;
+      height: 50%;
+      position: absolute;
+      top: 0;
+      left: 0;
+      transform-origin: top;
+      transition: transform 0.8s ease;
+      z-index: 2;
+      border-top-left-radius: 0.5rem;
+      border-top-right-radius: 0.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .flap img {
+      width: 3.75rem;
+      height: 3.75rem;
+      opacity: 0.9;
+    }
+
+    .card {
+      position: absolute;
+      top: 40%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0);
+      background: #fff;
+      border: 2px solid #dc2626;
+      padding: 2rem;
+      border-radius: 1rem;
+      z-index: 0;
+      text-align: center;
+      width: 88%;
+      transition: transform 0.6s ease 0.3s;
+      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+      font-size: 1.25rem;
+    }
+
+    .card h2 {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #b91c1c;
+      margin: 0;
+    }
+
+    .card p {
+      margin-top: 0.5rem;
+      color: #4b5563;
+      font-size: 1.1rem;
+    }
+
+    .mail-container.open .flap {
+      transform: rotateX(-120deg);
+    }
+
+    .mail-container.open .card {
+      transform: translate(-50%, -50%) scale(1);
+      z-index: 3;
+    }
+
+    .flower {
+      position: absolute;
+      font-size: 2rem;
+      animation: floatUpFlower 4s ease-in-out forwards;
+      pointer-events: none;
+    }
+
+    @keyframes floatUpFlower {
+      0% {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(-250px) scale(1.5) rotate(360deg);
+        opacity: 0;
+      }
+    }
+
+    .bg-gradient {
+      background: linear-gradient(to bottom, #ffe4e6, #fecdd3);
+    }
+
+    @media (max-width: 640px) {
+      .mail-container {
+        width: 95vw;
+        height: 65vh;
+      }
+
+      .card {
+        font-size: 1rem;
+        padding: 1.5rem;
+      }
+
+      .card h2 {
+        font-size: 1.5rem;
+      }
+
+      .card p {
+        font-size: 1rem;
+      }
+
+      .flap img {
+        width: 3rem;
+        height: 3rem;
+      }
+    }
+  </style>
+</head>
+<body class="bg-gradient min-h-screen flex items-center justify-center font-sans relative overflow-hidden">
+
+  <div class="text-center space-y-4">
+    <div id="mail" class="mail-container" onclick="openMail()">
+      <div class="envelope"></div>
+      <div class="flap flex items-center justify-center">
+        <img src="https://cdn-icons-png.flaticon.com/512/833/833472.png" alt="heart" />
+      </div>
+      <div class="card">
+        <h2 id="card-title">สุขสันต์วันครบรอบ live 1 ปี!</h2>
+        <p id="card-content">"ขอบคุณที่อยู่เคียงข้างกันในทุกช่วงเวลา 1 ปีแล้วนะจ๋ะ <br> 1 ปีแล้วยัง นอย อยู่ ❤️"</p>
+        <button id="next-btn" class="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">หน้าถัดไป</button>
+      </div>
+    </div>
+    <p class="text-gray-600 italic">คลิกที่ซองจดหมายเพื่อเปิดดูข้อความ</p>
+  </div>
+
+  <script>
+    let isOpened = false;
+    let flowerInterval;
+    let currentPage = 0;
+
+    const pages = [
+      {
+        title: "สุขสันต์วันครบรอบ live 1 ปี!",
+        content: "ขอบคุณที่อยู่เคียงข้างกันในทุกช่วงเวลา 1 ปีแล้วนะจ๋ะ <br> 1 ปีแล้วยัง นอย อยู่ ❤️"
+      },
+      {
+        title: " ผีมัด เมา ",
+        content: " ผีมัดเมา สนุกมาก คซ ยิงอะไรไม่โดนเลย 555 แล้วเกมก็ไม่จบ "
+      },
+      {
+        title: " ไลฟ์โรบูด ",
+        content: " ไลฟ์ โลบูด เธอคงลืมไปแล้ว เส้าา T_T ตกปลาคง ได้แค่ปลาการ์ตูน :3"
+      },
+      {
+        title: "Resident evil สนุกที่สุดละ ชอบ",
+        content: " ป๋า แจ็ค โหดเหมือนเดิมใครแกล้ง คซ แล้ว อีธาน เอาแขนต่อได้งัย คิดถึงอีธาน 🥴  "
+      },
+      {
+        title: " r.e.p.o ",
+        content: " วุ้นวาย มาก ดูไม่ค่อยรู้เรื่อง 555"
+      },
+      {
+        title: " Black room  ",
+        content: " เธอคงลืมไปแล้ว 😔😔"
+      },
+      {
+        title: " Phasmophobia ",
+        content: " สนุก มีพี่สาวที่ไหน ไม่รู้มาแบกด้วย สนุกมากแต่หา ผีไม่ค่อยเจอ 555 ให้ พี่สาวแบก"
+      },
+      {
+        title: " ไปรับ มม ",
+        content: " สวยยยยย เว่อออ แต่เปิด ไพ่ดู เกร็งๆนะ 555"
+      },
+      {
+        title: " The walking dead  ",
+        content: " คซ หลุดคำหยาบบ่อย มาก 555 เกมทำร้ายจิตใจ น้อยๆของเด๋กกก สนุกดีนะ คิดถึงมากเกมนี้"
+      },
+      {
+        title: " Little nightmares  ",
+        content: " สนุกมาก คซ งง บ่อย มี มม มาเล่นแทนด้วยเอ๋นดู สนุกมาก เกมยังไม่จบเลยย มาเล่นต่อด้วยนะ :3"
+      },
+      {
+        title: " valorant  ",
+        content: " 🐕🐕🐕 "
+      }
+    ];
+
+    function openMail() {
+        const mail = document.getElementById('mail');
+
+        if (!isOpened) {
+            // รอบที่ 1
+            Swal.fire({
+            title: 'เปิดจดหมาย?',
+            text: 'นอย ?',
+            imageUrl: 'https://png.pngtree.com/png-vector/20240208/ourmid/pngtree-cartoon-character-croissant-png-image_11720545.png',
+            imageWidth: 100,
+            imageHeight: 100,
+            showCancelButton: true,
+            confirmButtonText: 'ใช่',
+            cancelButtonText: 'ไม่นอย',
+            confirmButtonColor: '#dc2626',
+            cancelButtonColor: '#6b7280'
+            }).then((result) => {
+            if (result.isConfirmed) {
+                // รอบที่ 2
+                Swal.fire({
+                title: 'แน่ใจนะ?',
+                text: 'จะเปิดจริง ๆ เหรอ? เปิดแล้วอ่านออกเสียงด้วย',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'แน่ใจแล้ว',
+                cancelButtonText: 'ยังไม่แน่ใจ',
+                confirmButtonColor: '#dc2626',
+                cancelButtonColor: '#6b7280'
+                }).then((secondResult) => {
+                if (secondResult.isConfirmed) {
+                    // รอบที่ 3
+                    Swal.fire({
+                    title: 'ยืนยันครั้งสุดท้าย!',
+                    text: 'เปิดแน่นะ? ย้อนกลับไม่ได้แล้วนะ! อ่่านดีนะอ่านข้ามโกดด',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'เปิดเลย!',
+                    cancelButtonText: 'ยังไม่พร้อม',
+                    confirmButtonColor: '#dc2626',
+                    cancelButtonColor: '#6b7280'
+                    }).then((finalResult) => {
+                    if (finalResult.isConfirmed) {
+                        isOpened = true;
+                        mail.classList.add('open');
+                        startFlowerEffect();
+                        currentPage = 0;
+                        showPage(currentPage);
+                    }
+                    });
+                }
+                });
+            }
+            });
+        }
+        }
+
+    function showPage(index) {
+      const titleEl = document.getElementById('card-title');
+      const contentEl = document.getElementById('card-content');
+      const nextBtn = document.getElementById('next-btn');
+
+      titleEl.innerText = pages[index].title;
+      contentEl.innerHTML = pages[index].content;
+
+      if (index >= pages.length - 1) {
+        nextBtn.innerText = "ปิดจดหมาย";
+      } else {
+        nextBtn.innerText = "หน้าถัดไป";
+      }
+
+      nextBtn.onclick = () => {
+        if (currentPage < pages.length - 1) {
+          currentPage++;
+          showPage(currentPage);
+        } else {
+          closeMail();
+        }
+      };
+    }
+
+    function closeMail() {
+      const mail = document.getElementById('mail');
+      mail.classList.remove('open');
+      clearInterval(flowerInterval);
+      isOpened = false;
+    }
+
+    function startFlowerEffect() {
+      flowerInterval = setInterval(() => {
+        const flower = document.createElement('span');
+        flower.classList.add('flower');
+        flower.textContent = ['🌼', '🌹', '🌻'][Math.floor(Math.random() * 3)];
+        flower.style.left = Math.random() * 100 + '%';
+        flower.style.top = '100%';
+        document.body.appendChild(flower);
+
+        setTimeout(() => {
+          flower.remove();
+        }, 4000);
+      }, 500);
+    }
+  </script>
+</body>
+</html>
